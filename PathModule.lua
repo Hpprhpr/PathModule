@@ -1,6 +1,6 @@
 -- v 1.0.0
 -- Inspired by SimplePath + NoobPath
--- Made by @drassiles
+-- Made by @drassiles 
 
 local PathModule = {}
 local PathfindingService = game:GetService("PathfindingService")
