@@ -22,7 +22,7 @@ Works with any `Humanoid` character (`Player.Character` or NPCs).
 
 **Usage Example:**
 ```lua
-local PathModule = require(game.ReplicatedStorage.src.PathModule)
+local PathModule = require(game.ReplicatedStorage.PathModule)
 local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
 
 -- Register events
