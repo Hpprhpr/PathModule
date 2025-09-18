@@ -1,0 +1,14 @@
+# Roblox Studio files
+*.rbxl*
+*.rbxl
+*.rbxm
+
+# Compiled Lua (if any)
+*.luac
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode / IDE files
+.vscode/
