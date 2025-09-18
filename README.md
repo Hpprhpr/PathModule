@@ -1,57 +1,39 @@
-# PathModule - Roblox Pathfinding Module
+# PathModule for Roblox
 
-A robust and easy-to-use pathfinding module for Roblox characters, inspired by SimplePath and NoobPath.
+Robust and easy-to-use pathfinding modules for Roblox characters and objects, inspired by SimplePath + NoobPath.
 
-## Features
+---
 
-- Walks characters to a target position automatically
-- Handles jumping over obstacles
+## Versions
+
+### 1. Humanoid Version
+
+Works with any `Humanoid` character (`Player.Character` or NPCs).
+
+**Features:**
+- Automatic walking to a target
+- Jumping over obstacles
 - Dynamic path recalculation if blocked or trapped
-- Partial path support (goes to the closest reachable point if destination is unreachable)
-- Waypoint variation to avoid repetitive paths
-- Timeout for waypoints to prevent stuck characters
-- Full event system:
-  - `OnReached` - triggered when character reaches destination
-  - `OnWaypointReached` - triggered at every waypoint
-  - `OnBlocked` - triggered if path cannot be computed
-  - `OnTrapped` - triggered if character gets stuck mid-path
-  - `OnStopped` - triggered when movement is manually stopped
-- Stop function to cancel movement at any time
+- Partial path support
+- Waypoint variation
+- Timeout per waypoint
+- Stop function
+- Event system: `OnReached`, `OnWaypointReached`, `OnBlocked`, `OnTrapped`, `OnStopped`
 
-## Installation
-
-1. Place `PathModule` in `ReplicatedStorage`.
-2. Require the module in a LocalScript or ServerScript:
-
-## Example
+**Usage Example:**
 ```lua
-local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+local PathModule = require(game.ReplicatedStorage.src.PathModule)
+local char = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
 
 -- Register events
-PathModule.OnReached(character, function(c, partial)
+PathModule.OnReached(char, function(c, partial)
     print(c.Name .. " reached destination" .. (partial and " (partial)" or ""))
 end)
 
-PathModule.OnWaypointReached(character, function(c, index, total)
-    print(c.Name .. " reached waypoint " .. index .. "/" .. total)
-end)
+-- Walk to target
+PathModule.WalkTo(char, Vector3.new(50,0,50))
 
-PathModule.OnBlocked(character, function(c)
-    print(c.Name .. " cannot compute path")
-end)
-
-PathModule.OnTrapped(character, function(c)
-    print(c.Name .. " is trapped, recalculating")
-end)
-
-PathModule.OnStopped(character, function(c)
-    print(c.Name .. " stopped manually")
-end)
-
--- Move character
-PathModule.WalkTo(character, Vector3.new(50,0,50))
-
--- Stop movement after 3 seconds
+-- Stop after 3 seconds
 task.delay(3, function()
-    PathModule.Stop(character)
+    PathModule.Stop(char)
 end)
