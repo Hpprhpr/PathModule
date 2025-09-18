@@ -23,6 +23,7 @@ A robust and easy-to-use pathfinding module for Roblox characters, inspired by S
 1. Place `PathModule` in `ReplicatedStorage`.
 2. Require the module in a LocalScript or ServerScript:
 
+## Example
 ```lua
 local character = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
 
