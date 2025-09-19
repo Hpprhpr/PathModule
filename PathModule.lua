@@ -1,4 +1,5 @@
--- PathModule v1.0.1
+-- PathModule v1.0.2
+-- Inspired by SimplePath + NoobPath
 -- Made by @drassiles
 
 local PathModule = {}
@@ -49,19 +50,19 @@ local function filterWaypoints(waypoints)
 	return filtered
 end
 
--- Walk to a point (Non-Humanoid)
--- moveFunc: function(targetVector3) called every step to move the object
--- jumpFunc: optional function() called if the waypoint requires jump
-function PathModule.WalkTo(object, targetPosition, moveFunc, jumpFunc)
-	if not object or not moveFunc then return end
+-- Walk to a point
+function PathModule.WalkTo(character, targetPosition)
+	if not character then return end
+	local humanoid = character:FindFirstChild("Humanoid")
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not rootPart then return end
 
-	PathModule.Stop(object)
-	activeWalks[object] = true
+	PathModule.Stop(character)
+	activeWalks[character] = true
 
-	local startPos = object.Position or object:GetPivot().Position
-	local path, isPartial = computePath(startPos, targetPosition)
+	local path, isPartial = computePath(rootPart.Position, targetPosition)
 	if not path then
-		if callbacks.Blocked[object] then callbacks.Blocked[object](object) end
+		if callbacks.Blocked[character] then callbacks.Blocked[character](character) end
 		return
 	end
 
@@ -74,27 +75,22 @@ function PathModule.WalkTo(object, targetPosition, moveFunc, jumpFunc)
 	end
 
 	for i, waypoint in ipairs(waypoints) do
-		if not activeWalks[object] then break end
+		if not activeWalks[character] then break end
 
-		if waypoint.Action == Enum.PathWaypointAction.Jump and jumpFunc then
-			jumpFunc()
+		if waypoint.Action == Enum.PathWaypointAction.Jump then
+			humanoid.Jump = true
 		end
 
-		moveFunc(waypoint.Position)
-
-		if callbacks.WaypointReached[object] then
-			callbacks.WaypointReached[object](object, i, #waypoints)
+		humanoid:MoveTo(waypoint.Position)
+		if callbacks.WaypointReached[character] then
+			callbacks.WaypointReached[character](character, i, #waypoints)
 		end
 
-		-- Timeout handling
 		local startTime = tick()
 		local reached = false
 		local conn
-		conn = RunService.Heartbeat:Connect(function()
-			local currentPos = object.Position or object:GetPivot().Position
-			if (currentPos - waypoint.Position).Magnitude < 2 then
-				reached = true
-			end
+		conn = humanoid.MoveToFinished:Connect(function(success)
+			reached = success
 		end)
 
 		while tick() - startTime < 5 do
@@ -104,35 +100,38 @@ function PathModule.WalkTo(object, targetPosition, moveFunc, jumpFunc)
 		conn:Disconnect()
 
 		if not reached then
-			if callbacks.Trapped[object] then callbacks.Trapped[object](object) end
-			return PathModule.WalkTo(object, targetPosition, moveFunc, jumpFunc)
+			if callbacks.Trapped[character] then callbacks.Trapped[character](character) end
+			return PathModule.WalkTo(character, targetPosition)
 		end
 
-		if i == #waypoints and activeWalks[object] then
-			activeWalks[object] = nil
-			if callbacks.Reached[object] then
-				callbacks.Reached[object](object, isPartial)
+		if i == #waypoints and activeWalks[character] then
+			activeWalks[character] = nil
+			if callbacks.Reached[character] then
+				callbacks.Reached[character](character, isPartial)
 			end
 		end
 	end
 end
 
 -- Stop movement
-function PathModule.Stop(object)
-	if activeWalks[object] then
-		activeWalks[object] = nil
-		if callbacks.Stopped[object] then
-			callbacks.Stopped[object](object)
+function PathModule.Stop(character)
+	if activeWalks[character] then
+		activeWalks[character] = nil
+		local humanoid = character:FindFirstChild("Humanoid")
+		if humanoid and character:FindFirstChild("HumanoidRootPart") then
+			humanoid:MoveTo(character.HumanoidRootPart.Position)
+		end
+		if callbacks.Stopped[character] then
+			callbacks.Stopped[character](character)
 		end
 	end
 end
 
 -- Register callbacks
-function PathModule.OnReached(object, fn) callbacks.Reached[object] = fn end
-function PathModule.OnWaypointReached(object, fn) callbacks.WaypointReached[object] = fn end
-function PathModule.OnBlocked(object, fn) callbacks.Blocked[object] = fn end
-function PathModule.OnStopped(object, fn) callbacks.Stopped[object] = fn end
-function PathModule.OnTrapped(object, fn) callbacks.Trapped[object] = fn end
+function PathModule.OnReached(character, fn) callbacks.Reached[character] = fn end
+function PathModule.OnWaypointReached(character, fn) callbacks.WaypointReached[character] = fn end
+function PathModule.OnBlocked(character, fn) callbacks.Blocked[character] = fn end
+function PathModule.OnStopped(character, fn) callbacks.Stopped[character] = fn end
+function PathModule.OnTrapped(character, fn) callbacks.Trapped[character] = fn end
 
 return PathModule
-
